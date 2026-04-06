@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <title>C2 Tactical Command</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body onload="startC2()">
+
+    <div id="login-overlay">
+        <h1 style="font-size: 1.8rem; margin-bottom: 5px; font-weight: 300; letter-spacing: 1px;">Centro di Comando Tattico</h1>
+        <h2 style="color: #ff8c00; margin-top: 0; font-size: 2.5rem; text-transform: uppercase; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 15px rgba(255, 140, 0, 0.4);">
+            Logistic Space Economy</h2>
+        <a href="/auth/discord" class="btn-discord" style="margin-top: 30px;">Accedi con Discord</a>
+    </div>
+
+    <div id="banner-notifiche">Sistema Online.</div>
+
+    <div id="main-sidebar">
+        <div class="sidebar-logo">C2</div>
+        <div class="sidebar-icon" onclick="togglePannello()" title="Set Operativo">🛠️</div>
+        <div class="sidebar-icon" onclick="toggleRoster()" title="Roster Operatori">👥</div>
+        <div class="sidebar-icon" onclick="toggleOrbita()" title="Orbita / Attesa">🪐</div>
+        <div class="sidebar-icon" onclick="toggleConsole()" title="Console Log">📜</div>
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-icon reset-btn" onclick="resetMap()" title="Reset Mappa">🎯</div>
+    </div>
+
+    <div id="contenitore-pannelli-dinamico">
+
+        <div id="pannello" class="nascosto">
+            <div class="pannello-content">
+                <h3 style="color:#ff8c00; margin-top:0;">SET OPERATIVO</h3>
+                <label>Gioco:</label>
+                <select id="filtro-gioco" onchange="cambiaSetIcone()">
+                    <option value="sc">Star Citizen</option>
+                    <option value="arma">Arma</option>
+                    <option value="general">General (NATO)</option>
+                </select>
+
+                <label style="margin-top:10px; display:block;">Sistema:</label>
+                <select id="filtro-sistema">
+                    <option value="stanton">Stanton</option>
+                    <option value="pyro">Pyro</option>
+                    <option value="nyx">Nyx</option>
+                </select>
+
+                <label style="margin-top:10px; display:block;">Mappa Principale:</label>
+                <select id="tendinaMappe" onchange="cambiaMappaPrincipale()"></select>
+
+                <label style="margin-top:10px; display:block;">Dettaglio / Sottomappa:</label>
+                <select id="tendinaDettagli" onchange="cambiaSottomappa()">
+                    <option value="">-- Seleziona Dettaglio --</option>
+                </select>
+
+                <div style="margin-top: 15px; display: flex; gap: 5px;">
+                    <button onclick="document.getElementById('fileMappaMaster').click()" style="background: #2f61a1; font-size: 10px;">⬆️ Nuova Mappa</button>
+                    <button onclick="document.getElementById('fileSottomappa').click()" style="background: #2f8141; font-size: 10px;">⬆️ Sub-Mappa</button>
+                    <button onclick="eliminaMappaCorrente()" style="background: #aa4444; width: 40px;">🗑️</button>
+                </div>
+                
+                <input type="file" id="fileMappaMaster" accept="image/*" style="display: none;" onchange="uploadMappa('master')">
+                <input type="file" id="fileSottomappa" accept="image/*" style="display: none;" onchange="uploadMappa('submap')">
+
+                <hr style="border-color: #333; margin: 15px 0;">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                    <button id="btn-matita" onclick="toggleMatita()">✏️ Matita</button>
+                    <button id="btn-gomma" onclick="toggleGomma()">🧽 Gomma</button>
+                    <button id="btn-testo" onclick="attivaTesto()">🔤 Testo</button>
+                    <button onclick="undoDisegno()">↩️ Undo</button>
+                </div>
+                
+                <select id="colore-matita" onchange="cambiaColoreMatita()" style="margin-top: 5px;">
+                    <option value="#ff4444">Rosso</option>
+                    <option value="#44ff44">Verde</option>
+                    <option value="#4444ff">Blu</option>
+                    <option value="#ffff44">Giallo</option>
+                    <option value="#ffffff">Bianco</option>
+                </select>
+
+                <button id="btn-griglia" onclick="toggleGriglia()" style="margin-top: 10px; font-weight: bold; background:#444;">Griglia Tattica</button>
+                <div id="icone-container" style="margin-top: 15px;"></div>
+                <button onclick="salvaPreset()" style="margin-top: 15px; background: #28a745; font-weight: bold;">💾 Salva Missione</button>
+                <button onclick="logout()" class="btn-logout">Esci</button>
+            </div>
+        </div>
+
+        <div id="sidebar" class="nascosto">
+            <h3 style="text-align:center; color:#7289da;">OPERATORI ONLINE</h3>
+            <div id="lista-operatori"></div>
+        </div>
+
+        <div id="sidebar-orbita" class="nascosto">
+            <h3 style="text-align:center; color:#ff8c00; margin-bottom:10px;">IN ORBITA / ATTESA</h3>
+            <div id="orbita-container"></div>
+        </div>
+
+            <div id="terminal-wrapper" class="nascosto">
+        <div id="terminal-header" onclick="document.getElementById('terminal-wrapper').classList.toggle('nascosto')">
+            LOG DI SISTEMA <span id="terminal-status">ONLINE</span>
+        </div>
+        <div id="terminal"></div>
+    </div>
+
+    </div> <div id="map"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/icone_db.js"></script>
+    <script src="js/tools.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
