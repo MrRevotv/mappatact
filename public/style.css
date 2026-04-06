@@ -1,0 +1,409 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #0a1d29;
+    overflow: hidden;
+    font-family: sans-serif;
+    color: white;
+}
+
+/* --- TRUCCO MAGICO PER LE ICONE SOPRA I PANNELLI --- */
+.leaflet-marker-pane, .leaflet-tooltip-pane, .leaflet-popup-pane, .leaflet-overlay-pane {
+    z-index: 2000 !important;
+}
+
+/* La mappa prende tutto lo schermo per consentire lo spostamento libero */
+#map {
+    height: 100vh;
+    width: 100vw !important;
+    margin-left: 0 !important;
+    background: #0a1d29;
+}
+
+.layout-con-orbita #map {
+    width: 100vw !important;
+    margin-left: 0 !important;
+}
+
+.leaflet-container {
+    background: #0a1d29 !important;
+}
+
+#login-overlay {
+    position: fixed;
+    inset: 0;
+    background: #0a1d29;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-discord {
+    background: #5865F2;
+    color: white;
+    padding: 15px 30px;
+    font-weight: bold;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+#banner-notifiche {
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3000;
+    background: rgba(180, 40, 40, 0.9);
+    padding: 8px 20px;
+    border-radius: 0 0 8px 8px;
+    transition: 0.5s;
+    font-weight: bold;
+}
+
+/* --- LINGUETTE (TABS) DEI PANNELLI --- */
+.tab-btn {
+    position: absolute;
+    background: #2b4f76;
+    color: white;
+    border: 1px solid #444;
+    padding: 8px 12px;
+    cursor: pointer;
+    z-index: 1001;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+.tab-btn:hover { background: #3a6ba1; }
+
+.tab-orbita {
+    top: 15px;
+    right: -42px; 
+    border-radius: 0 8px 8px 0;
+}
+.tab-roster {
+    top: 15px;
+    left: -42px; 
+    border-radius: 8px 0 0 8px;
+}
+.tab-pannello {
+    top: -35px;
+    left: 50%;
+    margin-left: -45px; /* Lo centra rispetto alla sua larghezza */
+    width: 90px;
+    border-radius: 8px 8px 0 0;
+    cursor: grab; /* Indica che si può afferrare e trascinare */
+}
+.tab-pannello:active {
+    cursor: grabbing; /* Cursore a pugno chiuso quando lo si trascina */
+}
+
+/* --- PANNELLI LATERALI --- */
+
+/* Orbita (A SINISTRA) */
+#sidebar-orbita {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    background: rgba(10, 20, 30, 0.95);
+    z-index: 1000;
+    border-right: 2px solid #444;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    transition: left 0.3s ease; /* Scivola in base alla posizione left */
+    box-sizing: border-box;
+}
+
+#sidebar-orbita.nascosto {
+    left: -250px; /* Nasconde l'esatta larghezza del pannello, lasciando la linguetta fuori */
+}
+
+/* Roster Operativo (A DESTRA) */
+#sidebar {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 200px;
+    height: 100vh;
+    background: rgba(10, 20, 30, 0.95);
+    z-index: 1000;
+    border-left: 2px solid #444;
+    padding: 15px;
+    transition: right 0.3s ease; /* Scivola in base alla posizione right */
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+#sidebar.nascosto {
+    right: -200px; /* Nasconde l'esatta larghezza del pannello, lasciando la linguetta fuori */
+}
+
+/* Pannello Strumenti (ALLARGATO E MOBILE) */
+#pannello {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    margin-left: -160px; /* Centra il pannello in base alla sua nuova larghezza */
+    width: 320px; /* Pannello allargato per ospitare due icone affiancate */
+    z-index: 1000;
+    background: rgba(15, 15, 15, 0.95);
+    padding: 15px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 85vh;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+    /* Rimosso transition per permettere il trascinamento fluido col mouse senza lag */
+}
+
+#pannello.nascosto {
+    display: none !important; /* Viene spento fisicamente per evitare problemi col drag */
+}
+
+/* --- STILI INTERNI ROSTER --- */
+.scheda-squadra {
+    background: rgba(255, 255, 255, 0.05);
+    margin-bottom: 5px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    border-left: 3px solid #7289da;
+    cursor: pointer;
+}
+
+.scheda-squadra h4 {
+    margin: 0 0 2px 0;
+    font-size: 11px;
+    color: #7289da;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.roster-info {
+    font-size: 9px;
+    color: #ccc;
+    margin-bottom: 2px;
+}
+
+.roster-membri {
+    font-size: 9px;
+    color: #888;
+    font-style: italic;
+    line-height: 1.1;
+}
+
+/* --- OVERLAY OPERATORI (Attesa permessi) --- */
+#overlay-operatore {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 15, 20, 0.95);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+/* --- ELEMENTI UI VARI --- */
+select, button {
+    width: 100%;
+    padding: 8px;
+    background: #222;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.btn-logout {
+    background: #8B0000;
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 10px;
+    border: 1px solid #ff4444;
+    padding: 10px;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+}
+.btn-logout:hover { background: #ff4444; }
+
+/* --- TERMINALE LOGS --- */
+#terminal-wrapper {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    width: 280px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #444;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+}
+#terminal-header {
+    padding: 8px;
+    font-size: 11px;
+    font-weight: bold;
+    border-bottom: 1px solid #444;
+    background: #111;
+    color: #ccc;
+}
+#terminal-status {
+    float: right;
+    font-weight: normal;
+    color: #666;
+    font-size: 9px;
+}
+#terminal {
+    font-family: monospace;
+    font-size: 10px;
+    padding: 8px;
+    height: 120px;
+    overflow-y: auto;
+    color: #00ff00;
+}
+#terminal-wrapper.minimizzato #terminal { display: none; }
+#terminal-wrapper.minimizzato { width: 200px; }
+
+/* --- LAYOUT A 2 COLONNE PER LE ICONE --- */
+#icone-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Due colonne di uguale larghezza */
+    gap: 5px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* --- ICONE, CERCHI E RADAR --- */
+.contenitore-icona {
+    position: relative;
+    width: 75px;
+    height: 75px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.immagine-custom {
+    width: 65px;
+    height: 65px;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+}
+
+.etichetta-nome {
+    position: absolute;
+    left: 80px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 15px;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.squadra-selezionata .immagine-custom {
+    filter: drop-shadow(0 0 8px #7289da);
+    transform: scale(1.1);
+}
+
+.cerchio-tattico {
+    border: 2px solid #ff4444;
+    border-radius: 50%;
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px rgba(255, 68, 68, 0.8), inset 0 0 10px rgba(255, 68, 68, 0.4);
+    pointer-events: none;
+    z-index: 1;
+    box-sizing: border-box;
+}
+
+.ping-animato {
+    width: 100%;
+    height: 100%;
+    border-width: 4px;
+    border-style: solid;
+    border-radius: 50%;
+    animation: radar-ping 1.5s infinite ease-out;
+    box-sizing: border-box;
+}
+
+@keyframes radar-ping {
+    0% { transform: scale(0.1); opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
+
+.etichetta-coordinata {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    pointer-events: none;
+    text-shadow: 1px 1px 2px black;
+}
+
+.etichetta-coordinata-sub {
+    color: #00ff00;
+    font-size: 11px;
+    font-weight: bold;
+    pointer-events: none;
+    text-shadow: 1px 1px 2px #000;
+}
+
+/* --- POPUP E MENU --- */
+.squadra-popup {
+    color: black;
+    min-width: 150px;
+    font-size: 12px;
+}
+.squadra-popup input, .squadra-popup textarea {
+    width: 100%;
+    margin: 2px 0;
+    box-sizing: border-box;
+}
+
+.popup-icona {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+}
+.popup-icona button {
+    padding: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 3px;
+    font-weight: bold;
+}
+.btn-amica { background: #44ff44; color: black; }
+.btn-nemica { background: #ff4444; color: white; }
+
+/* --- GESTIONE MATITA E BLOCCO GESTURE (TABLET/TOUCH) --- */
+#map.drawing-active,
+#map.drawing-active .leaflet-interactive,
+#map.drawing-active .leaflet-container {
+    touch-action: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+/* Feedback Attivazione Tasti */
+#btn-griglia.attiva { background-color: #ff8c00; box-shadow: 0 0 10px #ff8c00; color: white; }
+#btn-gomma.attiva { background-color: #ff4444; color: white; }
